@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<title>Product List</title>
+<style>
+  .product {
+      margin-bottom: 10px;
+  }
+  #pagination {
+      margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+<div id="products"></div>
+<div id="pagination">
+  <button id="prevPage">Previous</button>
+  <span id="currentPage"></span>
+  <button id="nextPage">Next</button>
+</div>
+<div id="filters">
+  <label for="filterName">Filter by Name:</label>
+  <input type="text" id="filterName">
+  <label for="filterBrand">Filter by Brand:</label>
+  <input type="text" id="filterBrand">
+  <label for="filterPrice">Filter by Price:</label>
+  <input type="number" id="filterPrice">
+  <button id="applyFilters">Apply Filters</button>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js"></script>
+<script type="module" src="main.js"></script>
+</body>
+</html>
