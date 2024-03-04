@@ -6,11 +6,9 @@ function generateAuthString(password) {
 
 const password = "Valantis";
 const authString = generateAuthString(password);
-console.log(authString);
-
 const requestData = {
     action: 'get_ids',
-    params: { offset: 0, limit: 10 }
+    params: { offset: 0, limit: 50 }
 };
 
 const headers = {
@@ -38,6 +36,13 @@ try {
 
 // ++++++++++
 
+const PRODUCTS_PER_PAGE = 50;
+let currentPage = 1;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadProducts((currentPage - 1) * PRODUCTS_PER_PAGE, PRODUCTS_PER_PAGE);
+    assignEventHandlers();
+});
 
 async function loadProducts(offset = 0, limit = 50, filters = {}) {
     const requestData = {
@@ -46,14 +51,28 @@ async function loadProducts(offset = 0, limit = 50, filters = {}) {
     };
 
     try {
-        return await fetchData(requestData);
+        const data = await fetchData(requestData);
+        displayProducts(data.result);
     } catch (error) {
         console.error('Error loading products:', error);
         throw new Error('Failed to load products');
     }
 }
 
-// Функция для отправки запроса к API
+function assignEventHandlers() {
+    document.getElementById('prevPage').addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            loadProducts((currentPage - 1) * PRODUCTS_PER_PAGE, PRODUCTS_PER_PAGE);
+        }
+    });
+
+    document.getElementById('nextPage').addEventListener('click', () => {
+        currentPage++;
+        loadProducts((currentPage - 1) * PRODUCTS_PER_PAGE, PRODUCTS_PER_PAGE);
+    });
+}
+
 async function fetchData(requestData) {
     try {
         const response = await fetch('https://api.valantis.store:41000/', {
@@ -68,8 +87,11 @@ async function fetchData(requestData) {
         if (!response.ok) {
             throw new Error('Failed to fetch data');
         }
+        const data = await response.json();
+        console.log('Response data:', data);
 
-        return response.json();
+        return data;
+        // return response.json();
     } catch (error) {
         console.error('Error fetching data:', error);
         throw new Error('Failed to fetch data');
@@ -83,22 +105,30 @@ async function displayProducts(productIds) {
     productsContainer.innerHTML = '';
 
     try {
-        productIds.forEach(async productId => {
+        let productsHTML = '';
+
+        for (const productId of productIds) {
             try {
                 const product = await getDetailedProduct(productId);
-                products.push(product);
-                const productElement = document.createElement('div');
-                productElement.innerHTML = `
-                    <p><strong>ID:</strong> ${product.id}</p>
-                    <p><strong>Product:</strong> ${product.product}</p>
-                    <p><strong>Brand:</strong> ${product.brand}</p>
-                    <p><strong>Price:</strong> ${product.price}</p>
-                `;
-                productsContainer.appendChild(productElement);
+                const existingProductIndex = products.findIndex(p => p.id === product.id);
+
+                if (existingProductIndex === -1) {
+                    products.push(product);
+                    productsHTML += `
+                        <div class="product">
+                            <p><strong>ID:</strong> ${product.id}</p>
+                            <p><strong>Product:</strong> ${product.product}</p>
+                            <p><strong>Brand:</strong> ${product.brand}</p>
+                            <p><strong>Price:</strong> ${product.price}</p>
+                        </div>`;
+                } else {
+                    console.log('Product with ID', productId, 'is already in the list.');
+                }
             } catch (error) {
                 console.error('Error displaying product with ID', productId, ':', error);
             }
-        });
+        }
+        productsContainer.innerHTML = productsHTML;
     } catch (error) {
         console.error('Error displaying products:', error);
         document.getElementById('error-message').textContent = error.message;
@@ -110,7 +140,7 @@ async function getDetailedProduct(productId) {
         action: 'get_items',
         params: { ids: [productId] }
     };
-
+    console.log(requestData)
     try {
         const response = await fetchData(requestData);
         return response.result[0];
@@ -119,27 +149,3 @@ async function getDetailedProduct(productId) {
         throw new Error('Failed to get detailed product with ID ' + productId);
     }
 }
-
-
-// ++++++++++++++++++++++++++
-
-
-const PRODUCTS_PER_PAGE = 50;
-let currentPage = 1;
-
-document.addEventListener('DOMContentLoaded', () => {
-  loadProducts(currentPage);
-
-  document.getElementById('prevPage').addEventListener('click', () => {
-    if (currentPage > 1) {
-      currentPage--;
-      loadProducts(currentPage);
-    }
-  });
-
-  document.getElementById('nextPage').addEventListener('click', () => {
-    currentPage++;
-    loadProducts(currentPage);
-  });
-});
-
