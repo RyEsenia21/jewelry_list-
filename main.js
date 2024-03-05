@@ -1,3 +1,5 @@
+// Код работает, но медленно
+
 function generateAuthString(password) {
     const timestamp = new Date().toISOString().slice(0,10).replace(/-/g,"");
     const authString = password + "_" + timestamp;
@@ -6,33 +8,6 @@ function generateAuthString(password) {
 
 const password = "Valantis";
 const authString = generateAuthString(password);
-const requestData = {
-    action: 'get_ids',
-    params: { offset: 0, limit: 50 }
-};
-
-const headers = {
-    'Content-Type': 'application/json',
-    'X-Auth': authString
-};
-
-try {
-    const response = await fetch('https://api.valantis.store:41000/', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(requestData)
-    });
-
-    if (!response.ok) {
-        throw new Error('Failed to fetch products');
-    }
-
-    const data = await response.json();
-    console.log(data);
-    displayProducts(data.result);
-} catch (error) {
-    console.error('Error fetching products:', error);
-}
 
 // ++++++++++
 
@@ -87,11 +62,11 @@ async function fetchData(requestData) {
         if (!response.ok) {
             throw new Error('Failed to fetch data');
         }
-        const data = await response.json();
-        console.log('Response data:', data);
+        // const data = await response.json();
+        // console.log('Response data:', data);
 
-        return data;
-        // return response.json();
+        // return data;
+        return await response.json();
     } catch (error) {
         console.error('Error fetching data:', error);
         throw new Error('Failed to fetch data');
